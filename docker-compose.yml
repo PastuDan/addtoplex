@@ -1,0 +1,17 @@
+version: '2'
+services:
+  redis:
+    image: redis
+      - ./inf/redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - 6379
+  api:
+    command: node service/api
+    image: '${DOCKER_CONTAINER_NAME}:${TAG}'
+    restart: on-failure
+    links:
+      - redis
+    env_file:
+      - ./inf/env/${TARGET}/api.env.plain
+    ports:
+      - 4000

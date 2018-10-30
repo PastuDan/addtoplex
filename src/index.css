@@ -1,14 +1,46 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans|Merriweather:400,700');
+
 body {
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
+  font-family: var(--defaultFont);
+  color: var(--titleColor);
+  text-rendering: optimizeLegibility;
+  font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+:root {
+  /* COLORS */
+  --backgroundImage: linear-gradient(#eb0000, #680000);
+  --titleColor: #3c3c3c;
+  --colorError: rgba(250, 100, 100, 0.95);
+  --colorErrorBorder: rgba(250, 50, 50, 0.95);
+  --colorCta: #4294c7;
+  --colorCtaBorder: #4284ad;
+  --colorSecondary: #f5f8fb;
+  --colorSecondaryBorder: #e2e7ea;
+
+  /* FONTS */
+  --titleFont: 'Merriweather', serif;
+  --defaultFont: 'Open Sans', sans-serif;
+  --monospaceFont: 'SFMono-Regular', Menlo, Monaco, Consolas, 'Courier New', monospace;
+
+  /* SIZES */
+  --panelPadding: 20px;
+  --borderRadius: 3px;
+  --largeBorderRadius: 6px;
+}
+
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
+  font-family: var(--monospaceFont);
+}
+
+::placeholder {
+  color: #787878;
+}
+html {
+  background: var(--backgroundImage);
+  height: 100%;
 }
