@@ -10,12 +10,17 @@ const cache = redis('CACHE')
 const h264Regex = /(x264|h\.264)/i
 const h265Regex = /(x265|h\.265)/i
 const qualityRegex = /\/(480|720|1080|2160)p/i
+const posterRegex = /ptpimg\.me\/view\/[0-9a-f]+\/(.*)+/i
 
 const host = `https://passthepopcorn.me`
 
 async function search(query) {
   const cacheKey = `PTP:search:${query}`
   let results = await cache.get(cacheKey)
+
+  if (results === 'false') {
+    return []
+  }
 
   if (results) {
     return JSON.parse(results)
@@ -26,8 +31,12 @@ async function search(query) {
     headers: PTP_HEADERS
   })
 
-  if (!results) {
-    logger.warn(`ptp.search() no results returned`)
+  if (!Array.isArray(results)) {
+    throw new Error(`ptp.search() results not array, are you logged in?`)
+  }
+
+  if (!results || !results[1]) {
+    await cache.setex(cacheKey, 86400, false)
     return []
   }
 
@@ -58,7 +67,10 @@ async function fetchMovie(movieId) {
 
   const $ = cheerio.load(body)
 
-  const poster = $('.sidebar-cover-image').attr('src')
+  const posterMatches = $('.sidebar-cover-image')
+    .attr('src')
+    .match(posterRegex)
+  const poster = posterMatches ? posterMatches[1] : null
   const torrents = $('.torrent_table .group_torrent.group_torrent_header')
     .toArray()
     .map(function(torrent) {
@@ -107,22 +119,19 @@ async function fetchMovie(movieId) {
     })
     .filter(data => data !== null)
 
-  function smallestFromQuality(desiredQuality) {
-    const sortedTorrents = torrents
-      .filter(({ quality }) => quality === desiredQuality)
-      .sort(({ size: a }, { size: b }) => a < b)
-
-    if (sortedTorrents.length > 0) {
-      return sortedTorrents[0]
+  let filteredTorrents = []
+  torrents.sort(({ size: a }, { size: b }) => a < b).forEach(torrent => {
+    const lastTorrent = filteredTorrents[filteredTorrents.length - 1]
+    if (lastTorrent && torrent.quality !== lastTorrent.quality) {
+      filteredTorrents.push(torrent)
     }
-  }
+  })
+
+  filteredTorrents = filteredTorrents.sort(({ quality: a }, { quality: b }) => a > b)
 
   const movie = {
     poster,
-    torrent480: smallestFromQuality(480),
-    torrent720: smallestFromQuality(720),
-    torrent1080: smallestFromQuality(1080),
-    torrent2160: smallestFromQuality(2160)
+    torrents: filteredTorrents
   }
 
   cache.setex(cacheKey, 86400, JSON.stringify(movie))

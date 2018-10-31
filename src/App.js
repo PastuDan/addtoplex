@@ -1,6 +1,8 @@
 import React, { Component } from 'react'
 import './App.css'
 
+import Movie from './Movie'
+
 let searchTimeoutId
 let savedSearches
 try {
@@ -111,30 +113,9 @@ class App extends Component {
         {query ? (
           movies.length ? (
             <div className="movies">
-              {movies.map(({ title, year, id, poster, ...movie }) => {
-                const torrent = movie[`torrent${desiredQuality}`]
-
-                if (!torrent) {
-                  return (
-                    <div key={id} className="movie">
-                      No {desiredQuality}p torrents
-                    </div>
-                  )
-                }
-
-                const { link, size } = torrent
-                return (
-                  <div key={id} className="movie" onClick={() => console.log(link)}>
-                    <img src={poster} alt="poster" className="poster" />
-                    <div className="info">
-                      <h2 className="title">{title}</h2>
-                      <div className="metadata">
-                        {year} &middot; {size.toFixed(1)} Gb
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
+              {movies.map(movie => (
+                <Movie desiredQuality={desiredQuality} {...movie} />
+              ))}
             </div>
           ) : (
             <div className="noresults">No Movie Results</div>

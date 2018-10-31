@@ -1,0 +1,30 @@
+.Movie {
+  display: flex;
+  align-items: center;
+  color: var(--lightTextColor);
+  border-bottom: 3px solid #1e1e1e;
+  padding-right: 20px;
+}
+
+.Movie .info {
+  flex: 1;
+}
+.Movie .poster {
+  width: 100px;
+  min-height: 148px;
+  margin-right: 20px;
+  background: black;
+}
+
+.Movie .title {
+  font-weight: bold;
+  font-size: 22px;
+  line-height: 1.15em;
+}
+.Movie .metadata {
+  display: flex;
+  flex-direction: column;
+  color: #848484;
+  font-size: 14px;
+  margin-top: 30px;
+}

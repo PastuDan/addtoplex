@@ -65,32 +65,3 @@
   background: #2e2e2e;
   border-radius: 3px;
 }
-
-.App .movie {
-  display: flex;
-  align-items: center;
-  color: var(--lightTextColor);
-  border-bottom: 3px solid #1e1e1e;
-  padding-right: 20px;
-}
-
-.App .movie .info {
-  flex: 1;
-}
-.App .movie .poster {
-  width: 100px;
-  margin-right: 20px;
-}
-
-.App .movie .title {
-  font-weight: bold;
-  font-size: 22px;
-  line-height: 1.15em;
-}
-.App .movie .metadata {
-  display: flex;
-  flex-direction: column;
-  color: #848484;
-  font-size: 14px;
-  margin-top: 30px;
-}
