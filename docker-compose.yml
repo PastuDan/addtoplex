@@ -2,6 +2,7 @@ version: '2'
 services:
   redis:
     image: redis
+    volumes:
       - ./inf/redis.conf:/usr/local/etc/redis/redis.conf
     ports:
       - 6379
