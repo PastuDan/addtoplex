@@ -18,21 +18,23 @@ function sortQualitySeeds(torrentA, torrentB) {
   return torrentB.seeds - torrentA.seeds
 }
 
-module.exports = async function searchHandler(req, res) {
-  const { query } = req.params
-
-  try {
-    results = await search(query)
-  } catch (err) {
-    if (err.statusCode === 429) {
-      res.sendStatus(429)
+module.exports = async function movieHandler(req, res) {
+  for (let i = 0; i < results.length; i++) {
+    // TODO check if stale, queue update, push response back to clients via websocket
+    // ie, never block on these requests
+    let movie = {}
+    try {
+      movie = await fetchMovie(results[i].id)
+    } catch (err) {
+      logger.error('searchHandler() Movie request error', {
+        errMsg: err.message,
+        code: err.statusCode
+      })
+      return res.sendStatus(500)
     }
 
-    logger.error('searchHandler() Search request error', { errMsg: err.message })
-    return res.sendStatus(500)
+    results[i] = Object.assign(results[i], movie)
   }
-
-  res.send(results)
 }
 
 // module.exports = class SeriesSearchResult extends React.Component {
