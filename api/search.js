@@ -24,11 +24,14 @@ module.exports = async function searchHandler(req, res) {
   try {
     results = await search(query)
   } catch (err) {
+    if (err.statusCode === 429) {
+      res.sendStatus(429)
+    }
+
     logger.error('searchHandler() Search request error', { errMsg: err.message })
     return res.sendStatus(500)
   }
 
-  const response = []
   for (let i = 0; i < results.length; i++) {
     // TODO check if stale, queue update, push response back to clients via websocket
     // ie, never block on these requests
@@ -36,7 +39,10 @@ module.exports = async function searchHandler(req, res) {
     try {
       movie = await fetchMovie(results[i].id)
     } catch (err) {
-      logger.error('searchHandler() Movie request error', { errMsg: err.message })
+      logger.error('searchHandler() Movie request error', {
+        errMsg: err.message,
+        code: err.statusCode
+      })
       return res.sendStatus(500)
     }
 

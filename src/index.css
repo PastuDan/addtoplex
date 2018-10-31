@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css?family=Open+Sans|Merriweather:400,700');
+@import url('https://fonts.googleapis.com/css?family=Open+Sans|Proza+Libre:400,700');
 
 body {
   margin: 0;
@@ -21,9 +21,10 @@ body {
   --colorCtaBorder: #4284ad;
   --colorSecondary: #f5f8fb;
   --colorSecondaryBorder: #e2e7ea;
+  --lightTextColor: #e7e7e7;
 
   /* FONTS */
-  --titleFont: 'Merriweather', serif;
+  --titleFont: 'Helvetica', serif;
   --defaultFont: 'Open Sans', sans-serif;
   --monospaceFont: 'SFMono-Regular', Menlo, Monaco, Consolas, 'Courier New', monospace;
 
@@ -43,4 +44,14 @@ code {
 html {
   background: var(--backgroundImage);
   height: 100%;
+  background-attachment: fixed;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--titleFont);
 }
