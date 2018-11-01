@@ -2,12 +2,13 @@ import React, { Component } from 'react'
 import './App.css'
 
 import Movie from './Movie'
+import { Heart } from './icons'
 
 let searchTimeoutId
-let savedSearches
+let loadedSavedSearches
 try {
-  savedSearches = localStorage.getItem('savedSearches')
-  savedSearches = savedSearches ? JSON.parse(savedSearches) : []
+  loadedSavedSearches = localStorage.getItem('savedSearches')
+  loadedSavedSearches = loadedSavedSearches ? JSON.parse(loadedSavedSearches) : []
 } catch {}
 
 class App extends Component {
@@ -17,10 +18,10 @@ class App extends Component {
     toastType: null,
     toastMessage: null,
     desiredQuality: 1080,
-    savedSearches: savedSearches || []
+    savedSearches: loadedSavedSearches || []
   }
 
-  toast(toastType, toastMessage) {
+  toast = (toastType, toastMessage) => {
     this.setState({ toastType, toastMessage })
     window.setTimeout(() => this.setState({ toastType: null, toastMessage: null }), 8000)
   }
@@ -47,25 +48,39 @@ class App extends Component {
       })
   }
 
-  saveMovie(query) {
+  saveMovie = query => {
     try {
       let savedSearches = localStorage.getItem('savedSearches')
+      let index = -1
       if (savedSearches) {
         savedSearches = JSON.parse(savedSearches)
-        if (savedSearches.map(query => query.toLowerCase()).includes(query)) {
-          return
-        }
+        index = savedSearches.indexOf(query.toLowerCase())
       } else {
         savedSearches = []
       }
 
-      savedSearches.push(query)
+      if (index > -1) {
+        savedSearches.splice(index, 1)
+        console.log({ index, savedSearches })
+      } else {
+        savedSearches.push(query.toLowerCase())
+      }
+
       localStorage.setItem('savedSearches', JSON.stringify(savedSearches))
+      this.setState({ savedSearches })
     } catch {}
   }
 
   render() {
-    const { shows, movies, toastType, toastMessage, desiredQuality, query } = this.state
+    const {
+      shows,
+      movies,
+      toastType,
+      toastMessage,
+      desiredQuality,
+      query,
+      savedSearches
+    } = this.state
     return (
       <div className="App">
         {toastMessage ? <div className={`toast ${toastType}`}>{toastMessage}</div> : null}
@@ -73,9 +88,7 @@ class App extends Component {
         {savedSearches.length ? (
           <div className="saved-searches">
             <h2>Saved Movies</h2>
-            {savedSearches.map(query => (
-              <div>{query}</div>
-            ))}
+            {savedSearches.join(', ')}
           </div>
         ) : null}
         {query ? (
@@ -109,12 +122,26 @@ class App extends Component {
             <div className="noresults">No TV Results</div>
           )
         ) : null}
-        {query ? <div onClick={() => this.saveMovie(query)}>Save Search: {query}</div> : null}
+        {query ? (
+          <div className="save-search" onClick={() => this.saveMovie(query)}>
+            <div className="header">Save Search</div>
+            <div className="body">
+              <Heart className={savedSearches.includes(query.toLowerCase()) ? 'saved' : ''} />{' '}
+              {query}
+            </div>
+          </div>
+        ) : null}
         {query ? (
           movies.length ? (
             <div className="movies">
-              {movies.map(movie => (
-                <Movie desiredQuality={desiredQuality} {...movie} />
+              {movies.map((movie, index) => (
+                <Movie
+                  toast={this.toast}
+                  key={movie.id}
+                  desiredQuality={desiredQuality}
+                  {...movie}
+                  prefetchMetadata={index < 3}
+                />
               ))}
             </div>
           ) : (

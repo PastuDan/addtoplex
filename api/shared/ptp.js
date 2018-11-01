@@ -10,7 +10,6 @@ const cache = redis('CACHE')
 const h264Regex = /(x264|h\.264)/i
 const h265Regex = /(x265|h\.265)/i
 const qualityRegex = /\/(480|720|1080|2160)p/i
-const posterRegex = /ptpimg\.me\/view\/[0-9a-f]+\/(.*)+/i
 
 const host = `https://passthepopcorn.me`
 
@@ -53,12 +52,16 @@ async function search(query) {
   return formattedResults
 }
 
-async function fetchMovie(movieId) {
+async function fetchMovie(movieId, { cacheOnly = false } = {}) {
   const cacheKey = `PTP:movie:${movieId}`
   const cached = await cache.get(cacheKey)
 
   if (cached) {
     return JSON.parse(cached)
+  }
+
+  if (cacheOnly) {
+    return
   }
 
   const body = await request(`${host}/torrents.php?id=${movieId}`, {
@@ -67,10 +70,12 @@ async function fetchMovie(movieId) {
 
   const $ = cheerio.load(body)
 
-  const posterMatches = $('.sidebar-cover-image')
-    .attr('src')
-    .match(posterRegex)
-  const poster = posterMatches ? posterMatches[1] : null
+  const poster = $('.sidebar-cover-image').attr('src')
+  const rating = parseFloat(
+    $('.rating')
+      .eq(1)
+      .text()
+  )
   const torrents = $('.torrent_table .group_torrent.group_torrent_header')
     .toArray()
     .map(function(torrent) {
@@ -131,11 +136,11 @@ async function fetchMovie(movieId) {
 
   const movie = {
     poster,
+    rating,
     torrents: filteredTorrents
   }
 
   cache.setex(cacheKey, 86400, JSON.stringify(movie))
-  // TODO cache the formatted result
   return movie
 }
 

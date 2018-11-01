@@ -5,6 +5,7 @@
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
     "ioredis": "^4.2.0",
+    "node-rtorrent": "^1.1.0",
     "react": "^16.6.0",
     "react-dom": "^16.6.0",
     "react-scripts": "2.1.0",

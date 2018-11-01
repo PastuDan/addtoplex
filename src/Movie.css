@@ -23,8 +23,13 @@
 }
 .Movie .metadata {
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   color: #848484;
   font-size: 14px;
   margin-top: 30px;
+  white-space: pre-wrap;
+}
+.Movie .metadata svg {
+  width: 16px;
 }
