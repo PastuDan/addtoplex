@@ -6,6 +6,9 @@ import Movie from './Movie'
 import TorrentList from './TorrentList'
 import { Heart } from './icons'
 
+const createClient =
+  process.env.REACT_APP_RPC_SECURE === 'true' ? xmlrpc.createSecureClient : xmlrpc.createClient
+
 let searchTimeoutId
 let loadedSavedSearches
 try {
@@ -24,7 +27,7 @@ class App extends Component {
     torrentListTrigger: 0,
 
     // RPC config
-    client: xmlrpc.createSecureClient({
+    client: createClient({
       host: process.env.REACT_APP_RPC_HOST,
       port: process.env.REACT_APP_RPC_PORT,
       path: process.env.REACT_APP_RPC_PATH,
