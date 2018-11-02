@@ -10,4 +10,4 @@ set +a
 
 readEnvFile
 
-yarn start
+./node_modules/.bin/react-scripts start

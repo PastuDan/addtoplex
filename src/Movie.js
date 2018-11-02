@@ -81,7 +81,11 @@ class Movie extends Component {
             return
           }
 
-          console.log(link)
+          this.props.client.methodCall('load_start', [link], (err, response) => {
+            if (err) this.toast('error', err.message)
+          })
+
+          this.props.triggerTorrentList()
         }}
       >
         {poster ? (

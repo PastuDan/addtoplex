@@ -1,7 +1,9 @@
 import React, { Component } from 'react'
-import './App.css'
+import xmlrpc from 'xmlrpc'
 
+import './App.css'
 import Movie from './Movie'
+import TorrentList from './TorrentList'
 import { Heart } from './icons'
 
 let searchTimeoutId
@@ -18,10 +20,29 @@ class App extends Component {
     toastType: null,
     toastMessage: null,
     desiredQuality: 1080,
-    savedSearches: loadedSavedSearches || []
+    savedSearches: loadedSavedSearches || [],
+    torrentListTrigger: 0,
+
+    // RPC config
+    client: xmlrpc.createSecureClient({
+      host: process.env.REACT_APP_RPC_HOST,
+      port: process.env.REACT_APP_RPC_PORT,
+      path: process.env.REACT_APP_RPC_PATH,
+      basic_auth: {
+        user: process.env.REACT_APP_RPC_USER,
+        pass: process.env.REACT_APP_RPC_PASS
+      }
+    })
+  }
+
+  setupRpc = ({ host, port, path, user, pass }) => {
+    this.setState({
+      client: xmlrpc.createSecureClient({ host, port, path, basic_auth: { user, pass } })
+    })
   }
 
   toast = (toastType, toastMessage) => {
+    // throw new Error('k')
     this.setState({ toastType, toastMessage })
     window.setTimeout(() => this.setState({ toastType: null, toastMessage: null }), 8000)
   }
@@ -61,7 +82,6 @@ class App extends Component {
 
       if (index > -1) {
         savedSearches.splice(index, 1)
-        console.log({ index, savedSearches })
       } else {
         savedSearches.push(query.toLowerCase())
       }
@@ -69,6 +89,10 @@ class App extends Component {
       localStorage.setItem('savedSearches', JSON.stringify(savedSearches))
       this.setState({ savedSearches })
     } catch {}
+  }
+
+  triggerTorrentList = () => {
+    this.setState({ torrentListTrigger: Math.random() })
   }
 
   render() {
@@ -79,7 +103,9 @@ class App extends Component {
       toastMessage,
       desiredQuality,
       query,
-      savedSearches
+      savedSearches,
+      client,
+      torrentListTrigger
     } = this.state
     return (
       <div className="App">
@@ -136,8 +162,10 @@ class App extends Component {
             <div className="movies">
               {movies.map((movie, index) => (
                 <Movie
+                  client={client}
                   toast={this.toast}
                   key={movie.id}
+                  triggerTorrentList={this.triggerTorrentList}
                   desiredQuality={desiredQuality}
                   {...movie}
                   prefetchMetadata={index < 3}
@@ -148,6 +176,7 @@ class App extends Component {
             <div className="noresults">No Movie Results</div>
           )
         ) : null}
+        <TorrentList toast={this.toast} client={client} torrentListTrigger={torrentListTrigger} />
       </div>
     )
   }

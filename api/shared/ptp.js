@@ -10,6 +10,8 @@ const cache = redis('CACHE')
 const h264Regex = /(x264|h\.264)/i
 const h265Regex = /(x265|h\.265)/i
 const qualityRegex = /\/(480|720|1080|2160)p/i
+const sceneRegex = /\/scene/i
+const threeDRegex = /\/3d/i
 
 const host = `https://passthepopcorn.me`
 
@@ -108,12 +110,18 @@ async function fetchMovie(movieId, { cacheOnly = false } = {}) {
         quality = parseInt(quality[1], 10)
       }
 
+      // Filter out 3D movies
+      if (details.match(threeDRegex)) {
+        return null
+      }
+
       let size = parseFloat(sizeStr)
       if (sizeStr.indexOf('MiB') > -1) {
         size = size / 1024
       }
 
       return {
+        isScene: sceneRegex.test(details),
         link,
         codec,
         quality,
@@ -124,15 +132,38 @@ async function fetchMovie(movieId, { cacheOnly = false } = {}) {
     })
     .filter(data => data !== null)
 
-  let filteredTorrents = []
-  torrents.sort(({ size: a }, { size: b }) => a < b).forEach(torrent => {
-    const lastTorrent = filteredTorrents[filteredTorrents.length - 1]
-    if (lastTorrent && torrent.quality !== lastTorrent.quality) {
-      filteredTorrents.push(torrent)
-    }
+  const totalSeeders = torrents.reduce((total, { seeders }) => seeders + total, 0)
+  let dtorrents = torrents.map(torrent => {
+    torrent.avgSeeders = torrent.seeders / totalSeeders
+    return torrent
   })
 
-  filteredTorrents = filteredTorrents.sort(({ quality: a }, { quality: b }) => a > b)
+  const filteredTorrents = []
+  torrents
+    .sort(
+      ({ seeders: sA, quality: qA, isScene: isA }, { seeders: sB, quality: qB, isScene: isB }) => {
+        // First sort by quality, ASC
+        const qualityDiff = qB - qA
+        if (qualityDiff !== 0) {
+          return qualityDiff
+        }
+
+        // If same quality, pick scene releases first
+        const sceneDiff = isB - isA
+        if (sceneDiff !== 0) {
+          return sceneDiff
+        }
+
+        // If multiple scene releases, then pick the most seeded, DESC
+        return sB - sA
+      }
+    )
+    .forEach(torrent => {
+      const lastTorrent = filteredTorrents[filteredTorrents.length - 1]
+      if (!lastTorrent || (lastTorrent && lastTorrent.quality !== torrent.quality)) {
+        filteredTorrents.push(torrent)
+      }
+    })
 
   const movie = {
     poster,
@@ -140,7 +171,7 @@ async function fetchMovie(movieId, { cacheOnly = false } = {}) {
     torrents: filteredTorrents
   }
 
-  cache.setex(cacheKey, 86400, JSON.stringify(movie))
+  cache.setex(cacheKey, 86400 * 7, JSON.stringify(movie))
   return movie
 }
 
